@@ -1,0 +1,246 @@
+const fs = require('fs')
+const axios = require('axios')
+const Anime = require('../models/Anime')
+const Episode = require('../models/Episode')
+const Comment = require('../models/Comment')
+const { getDriveId, urlValid, dupSource } = require('../helpers')
+function escapeRegex(text) {
+    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")
+}
+
+async function newUpdate(newData, multi) {
+    newData._id = undefined
+    newData.__v = undefined
+    newData.set('multi', multi, { strict: false })
+    var isValid = await fs.readFileSync('../newupload.json', { encoding: 'utf8' })
+    var oldData = JSON.parse(isValid)
+    oldData.unshift(newData)
+    var data = oldData
+    if (data.length > 12) {
+        data.splice(12, 1)
+    }
+    await fs.writeFileSync('../newupload.json', JSON.stringify(data), { encoding: 'utf8' })
+}
+
+async function updateThumb(episode_id, thumbnail) {
+    var data = await fs.readFileSync('../newupload.json', { encoding: 'utf8' })
+    var oldData = JSON.parse(data)
+    var index = oldData.findIndex(x => x.episode_id === episode_id)
+    if (index > -1) {
+        oldData[index].thumbnail = thumbnail
+        await fs.writeFileSync('../newupload.json', JSON.stringify(oldData), { encoding: 'utf8' })
+    }
+}
+
+async function deleteUpdate(episode_id) {
+    var data = await fs.readFileSync('../newupload.json', { encoding: 'utf8' })
+    var oldData = JSON.parse(data)
+    var index = oldData.findIndex(x => x.episode_id === episode_id)
+    if (index > -1) {
+        oldData.splice(index, 1)
+        await fs.writeFileSync('../newupload.json', JSON.stringify(oldData), { encoding: 'utf8' })
+    }
+}
+
+module.exports = {
+    async get(req, res) {
+        try {
+            var count = await Episode.countDocuments({})
+            var page = parseInt(req.query.page || 1)
+            var perPage = parseInt(req.query.limit || 20)
+            var query = Episode.find({}, { __v: 0, _id: 0 }).sort({ created_at: -1 })
+            var episodes = await query.skip((page - 1) * perPage).limit(perPage)
+            var totalPage = Math.ceil(count / perPage);
+            var search = req.query.q
+
+            if (search) {
+                var regex = new RegExp(escapeRegex(search), 'gi')
+                var animes = await Anime.find({ $or: [{ title: regex }, { status: regex }, { season: regex }] }, { _id: 0 }).select('title anime_id')
+                var episodes = []
+                for (var item of animes) {
+                    var items = await Episode.find({ anime_id: item.anime_id }, { __v: 0, _id: 0 }).skip((page - 1) * perPage).limit(perPage)
+                    for (var episode of items) {
+                        episodes.push(episode)
+                    }
+
+                }
+                return res.send({ success: true, count, data: episodes, animes, meta: { page, perPage, totalPage } })
+            }
+
+            var animes = []
+            for (let episode of episodes) {
+                var anime_id = episode.anime_id
+                var anime = await Anime.findOne({ anime_id }, { _id: 0 }).select('title anime_id')
+                if (anime) animes.push(anime)
+            }
+            res.send({ success: true, count, data: episodes, animes, meta: { page, perPage, totalPage } })
+        } catch (err) {
+            res.send({ success: false, error: err.message })
+        }
+    },
+    async post(req, res) {
+        try {
+            var { anime_id, caption, number, description, thumbnail, sources } = req.body
+            if (!anime_id) throw Error('Missing Anime')
+            var isHas = await Episode.findOne({ anime_id, number })
+            if (isHas) throw Error("This episode already exist!")
+            if (sources.length > 0) {
+                for (item of sources) {
+                    var isUrl = urlValid(item.source)
+                    if (!isUrl) {
+                        continue;
+                    } else {
+                        var drive_id = getDriveId(item.source)
+                        if (drive_id) {
+                            item.source = drive_id
+                        } else {
+                            throw Error("Drive id not valid.")
+                        }
+                    }
+                }
+            }
+            var episodeCreate = await Episode.create({ anime_id, caption, number, thumbnail, description, sources })
+            var episode_id = episodeCreate.episode_id
+            return res.send({ success: true, episode_id, message: "Added." })
+        } catch (err) {
+            res.send({ success: false, error: err.message })
+        }
+    },
+    async getUpdate(req, res) {
+        try {
+            var { episode_id } = req.query
+            if (episode_id) {
+                var episode = await Episode.findOne({ episode_id }, { __v: 0, _id: 0 })
+                return res.send({ success: true, result: { episode } })
+            }
+        } catch (err) {
+            res.send({ success: false, error: err.message })
+        }
+    },
+    async update(req, res) {
+        try {
+            var { episode_id, anime_id, caption, number, description, sources, thumbnail } = req.body
+            if (sources.length > 0) {
+                for (item of sources) {
+                    var isUrl = urlValid(item.source)
+                    if (!isUrl) {
+                        continue;
+                    } else {
+                        var drive_id = getDriveId(item.source)
+                        if (drive_id) {
+                            item.source = drive_id
+                        } else {
+                            throw Error("Drive id not valid.")
+                        }
+                    }
+                }
+            }
+            await Episode.updateOne({ episode_id }, { anime_id, caption, number, thumbnail, description, sources })
+            return res.send({ success: true, message: 'Edited.' })
+        } catch (err) {
+            res.send({ success: false, error: err.message })
+        }
+    },
+    async removeEpisode(req, res) {
+        try {
+            var { episode_id } = req.body
+            await Episode.deleteOne({ episode_id })
+            await deleteUpdate(episode_id)
+            await Comment.deleteMany({ episode_id })
+            return res.send({ success: true, message: 'Removed.' })
+        } catch (err) {
+            res.send({ success: false, error: err.message })
+        }
+    },
+    async addMulti(req, res) {
+        try {
+            var { form, lists } = req.body
+            var { anime_id, type, audio, subtitle, description } = form
+            for (var item of lists) {
+                var source = item.id
+                var caption = item.title
+                var number = item.number
+                var thumbnail = item.thumbnail
+                var isHasEp = await Episode.findOne({ anime_id, number })
+                if (isHasEp) {
+                    var { episode_id } = isHasEp
+                    var old_sources = isHasEp.sources
+                    var dup = false
+                    for (var value of old_sources) {
+                        dup = dupSource(value, type, audio, subtitle)
+                    }
+                    if (!dup) {
+                        var sources = { source, type, audio, subtitle }
+                        await Episode.updateOne({ episode_id }, { $push: { sources } })
+                    }
+                } else {
+                    var sources = []
+                    sources.push({ source, type, audio, subtitle })
+                    await Episode.create({ anime_id, caption, number, thumbnail, description, sources })
+                }
+            }
+            res.send({ success: true, message: "You added." })
+        } catch (err) {
+            res.send({ success: false, error: err.message })
+        }
+    },
+    async getEditMulti(req, res) {
+        try {
+            var { anime_id, numbers } = req.query
+            var to_from = numbers.replace(/\s/g, '').split(/[-,\n|]/)
+            var to = to_from[0]
+            var from = to_from[1]
+            var episodes = await Episode.find({ anime_id, number: { $gte: to, $lte: from } })
+            if (episodes.length === 0) throw Error('Not found')
+            res.send({ success: true, results: episodes, message: "Found." })
+        } catch (err) {
+            res.send({ success: false, error: err.message })
+        }
+    },
+    async editMulti(req, res) {
+        try {
+            var { lists } = req.body
+            for (var item of lists) {
+                var { episode_id, caption, number, thumbnail, description, sources } = item
+                if (sources.length > 0) {
+                    for (source of sources) {
+                        var isUrl = urlValid(item.source)
+                        if (!isUrl) {
+                            continue;
+                        } else {
+                            var drive_id = getDriveId(item.source)
+                            if (drive_id) {
+                                item.source = drive_id
+                            } else {
+                                throw Error("Drive id not valid.")
+                            }
+                        }
+                    }
+                }
+                await Episode.updateOne({ episode_id }, { caption, number, thumbnail, description, sources })
+            }
+            res.send({ success: true, message: "You edited." })
+        } catch (err) {
+            res.send({ success: false, error: err.message })
+        }
+    },
+    async addThumb(req, res) {
+        try {
+            var { thumbnail, source } = req.body
+            var episodes = await Episode.find({ source })
+            for (var episode of episodes) {
+                var oldThumb = episode.thumbnail
+                var episode_id = episode.episode_id
+                if (!oldThumb
+                    || oldThumb === 'https://cdn.discordapp.com/attachments/624559812054876181/624560031475433482/Fix_Error_Code_6602-720x340.jpeg'
+                    || oldThumb === 'https://cdn.discordapp.com/attachments/624579939471196180/624899350916759593/Fix_Error_Code_6602-720x340.jpeg') {
+                    await Episode.updateOne({ episode_id }, { thumbnail })
+                    await updateThumb(episode_id, thumbnail)
+                }
+            }
+            res.send({ success: true, message: "You got this." })
+        } catch (err) {
+            res.send({ success: false, error: err.message })
+        }
+    }
+}

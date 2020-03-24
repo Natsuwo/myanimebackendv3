@@ -1,0 +1,100 @@
+{
+    "items": [
+        {
+            "icon": "mdi-view-dashboard",
+            "title": "Dashboard",
+            "to": "/admin"
+        },
+        {
+            "icon": "mdi-comment-text-outline",
+            "title": "Comments",
+            "to": "/admin/comments"
+        }
+    ],
+    "multiItems": [
+        {
+            "icon": "mdi-movie",
+            "title": "Animes",
+            "items": [
+                {
+                    "icon": "mdi-details",
+                    "title": "All animes",
+                    "to": "/admin/anime/edit"
+                },
+                {
+                    "icon": "mdi-note-plus",
+                    "title": "Add new (Anime)",
+                    "to": "/admin/anime/add-new"
+                },
+                {
+                    "icon": "mdi-notebook",
+                    "title": "Crawl (Anime)",
+                    "to": "/admin/anime/crawl"
+                }
+            ]
+        },
+        {
+            "icon": "mdi-filmstrip-box-multiple",
+            "title": "Episodes",
+            "items": [
+                {
+                    "icon": "mdi-details",
+                    "title": "All episodes",
+                    "to": "/admin/episode/edit"
+                },
+                {
+                    "icon": "mdi-fountain-pen",
+                    "title": "Edit Multi (Episode)",
+                    "to": "/admin/episode/edit-multi"
+                },
+                {
+                    "icon": "mdi-note-plus",
+                    "title": "Add new (Episode)",
+                    "to": "/admin/episode/add-new"
+                },
+                {
+                    "icon": "mdi-note-multiple",
+                    "title": "Add multi (Episode)",
+                    "to": "/admin/episode/add-multi"
+                }
+            ]
+        },
+        {
+            "icon": "mdi-tag",
+            "title": "Genres",
+            "items": [
+                {
+                    "icon": "mdi-details",
+                    "title": "All genres",
+                    "to": "/admin/genre/edit"
+                },
+                {
+                    "icon": "mdi-note-plus",
+                    "title": "Add new (Genres)",
+                    "to": "/admin/genre/add-new"
+                }
+            ]
+        },
+        {
+            "icon": "mdi-cog",
+            "title": "Settings",
+            "items": [
+                {
+                    "icon": "mdi-account-plus",
+                    "title": "Add new (User)",
+                    "to": "/settings/create-new-user"
+                },
+                {
+                    "icon": "mdi-calendar-clock",
+                    "title": "Calendar",
+                    "to": "/settings/calendar"
+                },
+                {
+                    "icon": "mdi-cog mdi-spin",
+                    "title": "Options",
+                    "to": "/settings/options"
+                }
+            ]
+        }
+    ]
+}

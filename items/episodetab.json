@@ -1,0 +1,40 @@
+[
+    {
+        "text": "Anime",
+        "value": "anime_title",
+        "width": "350px",
+        "sortable": true,
+        "align": "left"
+    },
+    {
+        "text": "Episode",
+        "value": "number",
+        "sortable": false,
+        "align": "left"
+    },
+    {
+        "text": "Caption",
+        "value": "caption",
+        "width": "350px",
+        "sortable": false,
+        "align": "left"
+    },
+    {
+        "text": "Last Update",
+        "value": "updated_at",
+        "sortable": true,
+        "align": "left"
+    },
+    {
+        "text": "Views",
+        "value": "views",
+        "sortable": true,
+        "align": "right"
+    },
+    {
+        "text": "Controls",
+        "value": "control",
+        "sortable": false,
+        "align": "right"
+    }
+]
