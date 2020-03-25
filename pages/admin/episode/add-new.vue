@@ -17,6 +17,7 @@
             <v-textarea v-model="form.description" label="Description"></v-textarea>
             <v-btn @click="addNewApartment" color="info">Add Source</v-btn>
             <v-btn @click="submit" :loading="loading" :disabled="loading" color="primary">Submit</v-btn>
+            <v-switch color="primary" v-model="form.isNew" class="ma-2" label="Push to top?"></v-switch>
           </v-form>
         </v-card-text>
       </v-card>

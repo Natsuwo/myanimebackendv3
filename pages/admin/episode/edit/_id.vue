@@ -18,6 +18,7 @@
           <v-text-field v-model="episode.thumbnail" label="Thumbnail"></v-text-field>
           <v-textarea v-model="episode.description" label="Description"></v-textarea>
           <v-flex class="text-right">
+          <v-switch color="primary" v-model="episode.isNew" class="ma-2" label="Push to top?"></v-switch>
             <v-btn @click="addNewApartment" color="info">Add Source</v-btn>
             <v-btn @click="submit" color="primary">Submit</v-btn>
             <v-btn @click="removeEpisode" color="red">Remove</v-btn>

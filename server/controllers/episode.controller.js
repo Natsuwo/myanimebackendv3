@@ -52,7 +52,7 @@ module.exports = {
     },
     async post(req, res) {
         try {
-            var { anime_id, caption, number, description, thumbnail, sources } = req.body
+            var { anime_id, caption, number, description, thumbnail, sources, isNew } = req.body
             if (!anime_id) throw Error('Missing Anime')
             var isHas = await Episode.findOne({ anime_id, number })
             if (isHas) throw Error("This episode already exist!")
@@ -73,7 +73,9 @@ module.exports = {
             }
             var episodeCreate = await Episode.create({ anime_id, caption, number, thumbnail, description, sources })
             var episode_id = episodeCreate.episode_id
-            await setNew(anime_id)
+            if (isNew) {
+                await setNew(anime_id)
+            }
             return res.send({ success: true, episode_id, message: "Added." })
         } catch (err) {
             res.send({ success: false, error: err.message })
@@ -92,7 +94,7 @@ module.exports = {
     },
     async update(req, res) {
         try {
-            var { episode_id, anime_id, caption, number, description, sources, thumbnail } = req.body
+            var { episode_id, anime_id, caption, number, description, sources, thumbnail, isNew } = req.body
             if (sources.length > 0) {
                 for (item of sources) {
                     var isUrl = urlValid(item.source)
@@ -109,6 +111,9 @@ module.exports = {
                 }
             }
             await Episode.updateOne({ episode_id }, { anime_id, caption, number, thumbnail, description, sources })
+            if (isNew) {
+                await setNew(anime_id)
+            }
             return res.send({ success: true, message: 'Edited.' })
         } catch (err) {
             res.send({ success: false, error: err.message })
@@ -118,7 +123,6 @@ module.exports = {
         try {
             var { episode_id } = req.body
             await Episode.deleteOne({ episode_id })
-            await deleteUpdate(episode_id)
             await Comment.deleteMany({ episode_id })
             return res.send({ success: true, message: 'Removed.' })
         } catch (err) {
@@ -127,7 +131,7 @@ module.exports = {
     },
     async addMulti(req, res) {
         try {
-            var { form, lists } = req.body
+            var { form, lists, isNew } = req.body
             var { anime_id, type, audio, subtitle, description, suffix } = form
             for (var item of lists) {
                 var source = item.id
@@ -152,7 +156,9 @@ module.exports = {
                     await Episode.create({ anime_id, caption, number, thumbnail, description, sources })
                 }
             }
-            await setNew(anime_id)
+            if (isNew) {
+                await setNew(anime_id)
+            }
             res.send({ success: true, message: "You added." })
         } catch (err) {
             res.send({ success: false, error: err.message })
@@ -173,7 +179,7 @@ module.exports = {
     },
     async editMulti(req, res) {
         try {
-            var { lists } = req.body
+            var { lists, isNew } = req.body
             for (var item of lists) {
                 var { episode_id, caption, number, thumbnail, description, sources } = item
                 if (sources.length > 0) {
@@ -192,6 +198,9 @@ module.exports = {
                     }
                 }
                 await Episode.updateOne({ episode_id }, { caption, number, thumbnail, description, sources })
+            }
+            if (isNew) {
+                await setNew(anime_id)
             }
             res.send({ success: true, message: "You edited." })
         } catch (err) {

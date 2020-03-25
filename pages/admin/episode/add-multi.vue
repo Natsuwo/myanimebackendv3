@@ -42,6 +42,7 @@
                 <v-divider class="py-4" />
               </div>
               <v-btn @click="isSubmit = !isSubmit" color="warning">Check prev fields</v-btn>
+              <v-switch color="primary" v-model="isNew" class="ma-2" label="Push to top?"></v-switch>
               <v-btn @click="submit" :loading="loading" :disabled="loading" color="primary">Submit</v-btn>
             </div>
           </v-form>
@@ -83,6 +84,7 @@ export default {
       titleHead: "Add Multi (Episode)",
       form: {},
       lists: [],
+      isNew: false,
       isSubmit: false,
       valid: true,
       loading: false,
@@ -104,7 +106,8 @@ export default {
       };
       var response = await addMulti(headers, {
         form: this.form,
-        lists: this.lists
+        lists: this.lists,
+        isNew: this.isNew
       });
       this.$store.commit("snackbar/snackBar", {
         active: true,

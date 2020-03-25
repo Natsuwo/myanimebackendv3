@@ -62,6 +62,7 @@
         </v-card-text>
       </v-card>
       <v-btn @click="isSubmit = !isSubmit" color="error">Go Back</v-btn>
+      <v-switch color="primary" v-model="isNew" class="ma-2" label="Push to top?"></v-switch>
       <v-btn @click="submit" :loading="loading" :disabled="loading" color="primary">Submit</v-btn>
     </v-flex>
   </v-layout>
@@ -91,6 +92,7 @@ export default {
       titleHead: "Edit Multi (Episode)",
       form: {},
       lists: [],
+      isNew: false,
       isSubmit: false,
       isEditAll: false,
       loading: false,
@@ -107,6 +109,7 @@ export default {
     async submit() {
       this.loading = true;
       var response = await editMulti(this.headers, {
+        isNew: this.isNew,
         lists: this.lists
       });
       this.$store.commit("snackbar/snackBar", {
