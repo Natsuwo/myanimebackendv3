@@ -13,11 +13,12 @@ module.exports = {
         var valid = regExp.test(text);
         return valid
     },
-    dupSource(source, type, audio, subtitle) {
+    dupSource(source, type, audio, subtitle, suffix) {
         var dup = false
         if (source.type === type
             && source.audio === audio
-            && source.subtitle === subtitle) {
+            && source.subtitle === subtitle
+            && source.suffix === suffix) {
             dup = true
         }
         return dup

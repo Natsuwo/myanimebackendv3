@@ -29,6 +29,7 @@
                 :data="form.subtitle"
                 @episodeLangEmit="data => form.subtitle = data"
               />
+              <v-text-field v-model="form.suffix" label="Suffix" hint="Horriblesubs"></v-text-field>
               <v-btn @click="preSubmit" color="green">PreSubmit</v-btn>
             </div>
             <div class="submit" v-else>

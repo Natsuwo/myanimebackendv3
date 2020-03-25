@@ -155,7 +155,7 @@ module.exports = {
     async addMulti(req, res) {
         try {
             var { form, lists } = req.body
-            var { anime_id, type, audio, subtitle, description } = form
+            var { anime_id, type, audio, subtitle, description, suffix } = form
             for (var item of lists) {
                 var source = item.id
                 var caption = item.title
@@ -167,15 +167,15 @@ module.exports = {
                     var old_sources = isHasEp.sources
                     var dup = false
                     for (var value of old_sources) {
-                        dup = dupSource(value, type, audio, subtitle)
+                        dup = dupSource(value, type, audio, subtitle, suffix)
                     }
                     if (!dup) {
-                        var sources = { source, type, audio, subtitle }
+                        var sources = { source, type, audio, subtitle, suffix }
                         await Episode.updateOne({ episode_id }, { $push: { sources } })
                     }
                 } else {
                     var sources = []
-                    sources.push({ source, type, audio, subtitle })
+                    sources.push({ source, type, audio, subtitle, suffix })
                     await Episode.create({ anime_id, caption, number, thumbnail, description, sources })
                 }
             }

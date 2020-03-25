@@ -37,6 +37,7 @@
             :langs="langs"
             @episodeLangEmit="data => source.subtitle = data"
           />
+          <v-text-field v-model="source.suffix" label="Suffix" hint="Horriblesubs"></v-text-field>
           <v-text-field :rules="[rules.required]" v-model="source.source" label="Source"></v-text-field>
           <v-flex class="text-right">
             <v-btn @click="removeApartment(index)" color="red">Remove Source</v-btn>

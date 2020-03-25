@@ -14,6 +14,7 @@
           />
           <v-text-field :rules="[rules.number]" v-model="episode.number" label="Number"></v-text-field>
           <v-text-field v-model="episode.caption" label="Caption"></v-text-field>
+          <img :src="episode.thumbnail" height="150" v-if="episode.thumbnail" />
           <v-text-field v-model="episode.thumbnail" label="Thumbnail"></v-text-field>
           <v-textarea v-model="episode.description" label="Description"></v-textarea>
           <v-flex class="text-right">
@@ -40,6 +41,7 @@
             :langs="langs"
             @episodeLangEmit="data => source.subtitle = data"
           />
+          <v-text-field v-model="source.suffix" label="Suffix" hint="Horriblesubs"></v-text-field>
           <v-text-field
             :rules="[rules.isValid, rules.required]"
             v-model="source.source"
