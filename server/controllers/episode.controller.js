@@ -1,5 +1,3 @@
-const fs = require('fs')
-const axios = require('axios')
 const Anime = require('../models/Anime')
 const Episode = require('../models/Episode')
 const Comment = require('../models/Comment')
@@ -8,37 +6,11 @@ function escapeRegex(text) {
     return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")
 }
 
-async function newUpdate(newData, multi) {
-    newData._id = undefined
-    newData.__v = undefined
-    newData.set('multi', multi, { strict: false })
-    var isValid = await fs.readFileSync('../newupload.json', { encoding: 'utf8' })
-    var oldData = JSON.parse(isValid)
-    oldData.unshift(newData)
-    var data = oldData
-    if (data.length > 12) {
-        data.splice(12, 1)
-    }
-    await fs.writeFileSync('../newupload.json', JSON.stringify(data), { encoding: 'utf8' })
-}
-
-async function updateThumb(episode_id, thumbnail) {
-    var data = await fs.readFileSync('../newupload.json', { encoding: 'utf8' })
-    var oldData = JSON.parse(data)
-    var index = oldData.findIndex(x => x.episode_id === episode_id)
-    if (index > -1) {
-        oldData[index].thumbnail = thumbnail
-        await fs.writeFileSync('../newupload.json', JSON.stringify(oldData), { encoding: 'utf8' })
-    }
-}
-
-async function deleteUpdate(episode_id) {
-    var data = await fs.readFileSync('../newupload.json', { encoding: 'utf8' })
-    var oldData = JSON.parse(data)
-    var index = oldData.findIndex(x => x.episode_id === episode_id)
-    if (index > -1) {
-        oldData.splice(index, 1)
-        await fs.writeFileSync('../newupload.json', JSON.stringify(oldData), { encoding: 'utf8' })
+async function setNew(anime_id) {
+    await Anime.updateOne({ anime_id }, { new: true, updated_at: Date.now() })
+    var count = await Anime.countDocuments({ new: true })
+    if (count > 30) {
+        await Anime.updateOne({ new: true }, { new: false })
     }
 }
 
@@ -101,6 +73,7 @@ module.exports = {
             }
             var episodeCreate = await Episode.create({ anime_id, caption, number, thumbnail, description, sources })
             var episode_id = episodeCreate.episode_id
+            await setNew(anime_id)
             return res.send({ success: true, episode_id, message: "Added." })
         } catch (err) {
             res.send({ success: false, error: err.message })
@@ -179,6 +152,7 @@ module.exports = {
                     await Episode.create({ anime_id, caption, number, thumbnail, description, sources })
                 }
             }
+            await setNew(anime_id)
             res.send({ success: true, message: "You added." })
         } catch (err) {
             res.send({ success: false, error: err.message })
@@ -220,25 +194,6 @@ module.exports = {
                 await Episode.updateOne({ episode_id }, { caption, number, thumbnail, description, sources })
             }
             res.send({ success: true, message: "You edited." })
-        } catch (err) {
-            res.send({ success: false, error: err.message })
-        }
-    },
-    async addThumb(req, res) {
-        try {
-            var { thumbnail, source } = req.body
-            var episodes = await Episode.find({ source })
-            for (var episode of episodes) {
-                var oldThumb = episode.thumbnail
-                var episode_id = episode.episode_id
-                if (!oldThumb
-                    || oldThumb === 'https://cdn.discordapp.com/attachments/624559812054876181/624560031475433482/Fix_Error_Code_6602-720x340.jpeg'
-                    || oldThumb === 'https://cdn.discordapp.com/attachments/624579939471196180/624899350916759593/Fix_Error_Code_6602-720x340.jpeg') {
-                    await Episode.updateOne({ episode_id }, { thumbnail })
-                    await updateThumb(episode_id, thumbnail)
-                }
-            }
-            res.send({ success: true, message: "You got this." })
         } catch (err) {
             res.send({ success: false, error: err.message })
         }
