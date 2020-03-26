@@ -19,8 +19,15 @@ module.exports = {
             var search = req.query.q
 
             if (search) {
-                var regex = new RegExp(escapeRegex(search), 'gi')
-                animes = await Anime.find({ $or: [{ title: regex }, { status: regex }, { season: regex }] })
+                if (/["]/.test(search)) {
+                    var regex = search.replace(/['"]+/g, '')
+                } else {
+                    var regex = new RegExp(escapeRegex(search), 'gi')
+                }
+                count = await Anime.countDocuments({ $or: [{ title: regex }, { status: regex }, { season: regex }] })
+                query = Anime.find({ $or: [{ title: regex }, { status: regex }, { season: regex }] }, { __v: 0, _id: 0 }).sort({ created_at: -1 })
+                totalPage = Math.ceil(count / perPage);
+                animes = await query.skip((page - 1) * perPage).limit(perPage)
             }
             res.send({ success: true, data: { animes, options: { page, perPage, totalPage } }, count })
 

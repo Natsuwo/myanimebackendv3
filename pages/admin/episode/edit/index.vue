@@ -102,6 +102,7 @@ export default {
       this.count = count;
       this.meta = meta;
       this.animes = animes;
+      this.page = 1;
     },
     async searchTimeOut(cb) {
       if (this.timer) {
