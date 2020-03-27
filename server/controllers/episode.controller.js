@@ -15,6 +15,7 @@ async function setNew(anime_id) {
 }
 
 async function addtoDrstream(drive_id) {
+    var axios = require('axios')
     var drdomain = process.env.DRDOMAIN
     var endpoint = drdomain + "/api/v2/hls-drive/add-new"
     var user_id = process.env.DRUSER
@@ -86,7 +87,7 @@ module.exports = {
                     } else {
                         var drive_id = getDriveId(item.source)
                         if (drive_id) {
-                            await addtoDrstream(item.source)
+                            await addtoDrstream(drive_id)
                             item.source = drive_id
                         } else {
                             throw Error("Drive id not valid.")
@@ -127,7 +128,7 @@ module.exports = {
                     } else {
                         var drive_id = getDriveId(item.source)
                         if (drive_id) {
-                            await addtoDrstream(item.source)
+                            await addtoDrstream(drive_id)
                             item.source = drive_id
                         } else {
                             throw Error("Drive id not valid.")
@@ -218,7 +219,7 @@ module.exports = {
                         } else {
                             var drive_id = getDriveId(item.source)
                             if (drive_id) {
-                                await addtoDrstream(item.source)
+                                await addtoDrstream(drive_id)
                                 item.source = drive_id
                             } else {
                                 throw Error("Drive id not valid.")
