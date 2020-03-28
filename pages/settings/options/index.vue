@@ -52,8 +52,22 @@
               ></v-text-field>
               <v-text-field
                 filled
+                v-model="option.settings.prev_season"
+                label="Prev Season"
+                hint="Fall 2019"
+                persistent-hint
+              ></v-text-field>
+              <v-text-field
+                filled
                 v-model="option.settings.current_season"
                 label="Current Season"
+                hint="Fall 2019"
+                persistent-hint
+              ></v-text-field>
+              <v-text-field
+                filled
+                v-model="option.settings.next_season"
+                label="Next Season"
                 hint="Fall 2019"
                 persistent-hint
               ></v-text-field>
