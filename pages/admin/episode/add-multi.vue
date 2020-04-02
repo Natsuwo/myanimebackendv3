@@ -10,7 +10,7 @@
             <div class="before-submit" v-if="!isSubmit">
               <Anime :data="form.anime_id" @episodeAnimeEmit="data => form.anime_id = data" />
               <v-text-field
-                :rules="[rules.isValid, rules.required]"
+                :rules="[rules.required]"
                 v-model="form.source"
                 label="Source (Folder)"
               ></v-text-field>
@@ -64,7 +64,7 @@ import Lang from "@/components/episode/Lang";
 import Anime from "@/components/episode/Anime";
 import { mapState } from "vuex";
 import { addMulti } from "@/services/Episode";
-import { isValid, getDriveId, getList, getNumber } from "@/plugins/valid";
+import { getDriveId, getList, getNumber } from "@/plugins/valid";
 export default {
   components: {
     Type,
@@ -90,8 +90,7 @@ export default {
       loading: false,
       rules: {
         number: v => /^[0-9]+$/.test(v) || "Number Only",
-        required: v => !!v || "source is required",
-        isValid: v => !v || isValid(v) || "Source not valid"
+        required: v => !!v || "source is required"
       }
     };
   },

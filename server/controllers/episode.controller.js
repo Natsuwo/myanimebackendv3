@@ -1,7 +1,8 @@
 const Anime = require('../models/Anime')
 const Episode = require('../models/Episode')
 const Comment = require('../models/Comment')
-const { getDriveId, urlValid, dupSource } = require('../helpers')
+const User = require('../models/User')
+const { getDriveId, urlValid, dupSource, sendMail } = require('../helpers')
 function escapeRegex(text) {
     return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")
 }
@@ -11,6 +12,25 @@ async function setNew(anime_id) {
     var count = await Anime.countDocuments({ new: true })
     if (count > 30) {
         await Anime.updateOne({ new: true }, { new: false })
+    }
+}
+
+async function sendMailToUser(anime, anime_id, host) {
+    try {
+        var users = await User.find({ myAlert: { $in: anime_id } }, { _id: 0 })
+        if (users.length) {
+            for (var user of users) {
+                var { username, email } = user
+                var subject = 'Myanime.co new episode for anime ' + anime.title
+                var text = subject
+                var html = `<div>Hi <strong>${username}</strong>,</div>
+            <div>Anime <strong>${anime.title}</strong> have new episode(s). Check it out now:</div>
+            <div>${'https://' + host}/anime/${anime_id}/${anime.slug}</div>`
+                await sendMail(email, subject, text, html)
+            }
+        }
+    } catch (err) {
+        console.error(err.message, 'at sendmailtouser')
     }
 }
 
@@ -77,6 +97,8 @@ module.exports = {
             var { anime_id, caption, number, description, thumbnail, sources, isNew } = req.body
             if (!anime_id) throw Error('Missing Anime')
             var isHas = await Episode.findOne({ anime_id, number })
+            var anime = await Anime.findOne({ anime_id }, { _id: 0 }).select("title slug")
+            if (!anime) throw Error("Anime does not exist!")
             if (isHas) throw Error("This episode already exist!")
             if (sources.length > 0) {
                 for (item of sources) {
@@ -100,6 +122,7 @@ module.exports = {
             if (isNew) {
                 await setNew(anime_id)
             }
+            sendMailToUser(anime, anime_id, req.get('host'))
             return res.send({ success: true, episode_id, message: "Added." })
         } catch (err) {
             res.send({ success: false, error: err.message })
@@ -159,6 +182,8 @@ module.exports = {
         try {
             var { form, lists, isNew } = req.body
             var { anime_id, type, audio, subtitle, description, suffix } = form
+            var anime = await Anime.findOne({ anime_id }, { _id: 0 }).select("title slug")
+            if (!anime) throw Error("Anime does not exist.")
             for (var item of lists) {
                 var source = item.id
                 var caption = item.title
@@ -187,6 +212,7 @@ module.exports = {
             if (isNew) {
                 await setNew(anime_id)
             }
+            sendMailToUser(anime, anime_id, req.get('host'))
             res.send({ success: true, message: "You added." })
         } catch (err) {
             res.send({ success: false, error: err.message })

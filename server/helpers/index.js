@@ -1,5 +1,29 @@
 
+const nodemailer = require('nodemailer')
+
 module.exports = {
+    async sendMail(email, subject, text, html) {
+        try {
+            var transporter = nodemailer.createTransport({
+                host: "smtp.yandex.com",
+                port: 465,
+                auth: {
+                    user: process.env.YANDEX_MAIL,
+                    pass: process.env.YANDEX_PASS
+                }
+            })
+            var mainOptions = {
+                from: process.env.YANDEX_MAIL,
+                to: email,
+                subject,
+                text,
+                html
+            }
+            await transporter.sendMail(mainOptions)
+        } catch (err) {
+            console.error(err.message, ' at sendMail')
+        }
+    },
     getDriveId(url) {
         var regExp = /(?:https?:\/\/)?(?:[\w\-]+\.)*(?:drive|docs)\.google\.com\/(?:(?:open|uc)\?(?:[\w\-\%]+=[\w\-\%]*&)*id=|(?:folder|file)\/d\/|\/ccc\?(?:[\w\-\%]+=[\w\-\%]*&)*key=)([\w\-]{28,})/i;
         var match = url.match(regExp);

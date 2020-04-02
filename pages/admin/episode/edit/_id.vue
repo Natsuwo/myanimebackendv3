@@ -44,7 +44,7 @@
           />
           <v-text-field v-model="source.suffix" label="Suffix" hint="Horriblesubs"></v-text-field>
           <v-text-field
-            :rules="[rules.isValid, rules.required]"
+            :rules="[rules.required]"
             v-model="source.source"
             label="Source"
           ></v-text-field>
@@ -70,7 +70,6 @@ import Anime from "@/components/episode/Anime";
 import { mapState } from "vuex";
 import { getUpdate, update, removeEpisode } from "@/services/Episode";
 import { getDriveId } from "@/plugins/valid";
-import { isValid } from "@/plugins/valid";
 export default {
   asyncData({ store, params, error }) {
     var headers = {
@@ -104,8 +103,7 @@ export default {
       titleHead: "Edit episode",
       rules: {
         number: v => /^[0-9]+$/.test(v) || "Number Only",
-        required: v => !!v || "source is required",
-        isValid: v => !v || isValid(v) || "Source not valid"
+        required: v => !!v || "source is required"
       }
     };
   },
