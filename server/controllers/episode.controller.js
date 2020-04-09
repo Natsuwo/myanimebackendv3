@@ -122,7 +122,7 @@ module.exports = {
             if (isNew) {
                 await setNew(anime_id)
             }
-            sendMailToUser(anime, anime_id, req.get('host'))
+            sendMailToUser(anime, anime_id, 'myanime.co')
             return res.send({ success: true, episode_id, message: "Added." })
         } catch (err) {
             res.send({ success: false, error: err.message })
@@ -212,7 +212,7 @@ module.exports = {
             if (isNew) {
                 await setNew(anime_id)
             }
-            sendMailToUser(anime, anime_id, req.get('host'))
+            sendMailToUser(anime, anime_id, 'myanime.co')
             res.send({ success: true, message: "You added." })
         } catch (err) {
             res.send({ success: false, error: err.message })
