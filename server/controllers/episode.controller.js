@@ -35,12 +35,16 @@ async function sendMailToUser(anime, anime_id, host) {
 }
 
 async function addtoDrstream(drive_id) {
-    var axios = require('axios')
-    var drdomain = process.env.DRDOMAIN
-    var endpoint = drdomain + "/api/v2/hls-drive/add-new"
-    var user_id = process.env.DRUSER
-    var secret_token = process.env.DRTOKEN
-    await axios.post(endpoint + `?user_id=${user_id}&secret_token=${secret_token}&drive_id=${drive_id}&setPremium=true`)
+    try {
+        var axios = require('axios')
+        var drdomain = process.env.DRDOMAIN
+        var endpoint = drdomain + "/api/v2/hls-drive/add-new"
+        var user_id = process.env.DRUSER
+        var secret_token = process.env.DRTOKEN
+        await axios.post(endpoint + `?user_id=${user_id}&secret_token=${secret_token}&drive_id=${drive_id}&setPremium=true`)
+    } catch (err) {
+        return false
+    }
 }
 
 module.exports = {
