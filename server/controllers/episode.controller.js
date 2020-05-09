@@ -34,19 +34,6 @@ async function sendMailToUser(anime, anime_id, host) {
     }
 }
 
-async function addtoDrstream(drive_id) {
-    try {
-        var axios = require('axios')
-        var drdomain = process.env.DRDOMAIN
-        var endpoint = drdomain + "/api/v2/hls-drive/add-new"
-        var user_id = process.env.DRUSER
-        var secret_token = process.env.DRTOKEN
-        await axios.post(endpoint + `?user_id=${user_id}&secret_token=${secret_token}&drive_id=${drive_id}&setPremium=true`)
-    } catch (err) {
-        return false
-    }
-}
-
 module.exports = {
     async get(req, res) {
         try {
@@ -108,12 +95,10 @@ module.exports = {
                 for (item of sources) {
                     var isUrl = urlValid(item.source)
                     if (!isUrl) {
-                        await addtoDrstream(item.source)
                         continue;
                     } else {
                         var drive_id = getDriveId(item.source)
                         if (drive_id) {
-                            await addtoDrstream(drive_id)
                             item.source = drive_id
                         } else {
                             throw Error("Drive id not valid.")
@@ -150,12 +135,10 @@ module.exports = {
                 for (item of sources) {
                     var isUrl = urlValid(item.source)
                     if (!isUrl) {
-                        await addtoDrstream(item.source)
                         continue;
                     } else {
                         var drive_id = getDriveId(item.source)
                         if (drive_id) {
-                            await addtoDrstream(drive_id)
                             item.source = drive_id
                         } else {
                             throw Error("Drive id not valid.")
@@ -202,13 +185,11 @@ module.exports = {
                         dup = dupSource(value, type, audio, subtitle, suffix)
                     }
                     if (!dup) {
-                        await addtoDrstream(source)
                         var sources = { source, type, audio, subtitle, suffix }
                         await Episode.updateOne({ episode_id }, { $push: { sources } })
                     }
                 } else {
                     var sources = []
-                    await addtoDrstream(source)
                     sources.push({ source, type, audio, subtitle, suffix })
                     await Episode.create({ anime_id, caption, number, thumbnail, description, sources })
                 }
@@ -244,12 +225,10 @@ module.exports = {
                     for (source of sources) {
                         var isUrl = urlValid(item.source)
                         if (!isUrl) {
-                            await addtoDrstream(item.source)
                             continue;
                         } else {
                             var drive_id = getDriveId(item.source)
                             if (drive_id) {
-                                await addtoDrstream(drive_id)
                                 item.source = drive_id
                             } else {
                                 throw Error("Drive id not valid.")
